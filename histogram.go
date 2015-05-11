@@ -1,12 +1,14 @@
 package histogram
 
 import (
-	"math"
+	"errors"
 	"sort"
 )
 
+var ExtrapolationError error = errors.New("Extrapolation of histogram values not supported")
+
 type Histogram struct {
-	values       map[int]int
+	values       map[int]float64
 	count        int
 	minV         *int
 	maxV         *int
@@ -16,16 +18,17 @@ type Histogram struct {
 
 func NewHistogram() *Histogram {
 	return &Histogram{
-		values: map[int]int{},
+		values: map[int]float64{},
 	}
 }
 
 func (h *Histogram) Add(v int) {
 	h.accHist = nil
+	h.sortedValues = nil
 
 	h.updateBoundaryValues(v)
 
-	count := h.values[v] + 1
+	count := h.values[v] + 1.0
 	h.values[v] = count
 
 	h.count += 1
@@ -54,12 +57,28 @@ func (h *Histogram) Sum() int {
 	return sum
 }
 
-func (h *Histogram) GetPercentile(v int) float64 {
-
+func (h *Histogram) checkInitialized() {
 	if h.minV == nil || h.maxV == nil {
 		panic("Uninitialized Histogram")
 	}
+}
 
+func (h *Histogram) Get(v int) (float64, error) {
+	h.checkInitialized()
+
+	if v < *h.minV || v > *h.maxV {
+		return 0, ExtrapolationError
+	}
+
+	count, ok := h.values[v]
+	if !ok {
+		count = h.interpolateValue(v, h.values)
+	}
+
+	return count, nil
+}
+
+func (h *Histogram) GetPercentile(v int) float64 {
 	if v < *h.minV {
 		return 0.0
 	}
@@ -74,15 +93,28 @@ func (h *Histogram) GetPercentile(v int) float64 {
 
 	count, ok := h.accHist[v]
 	if !ok {
-		count = h.interpolateValue(v)
+		count = h.interpolateValue(v, h.accHist)
 	}
 
 	return count / float64(h.Len())
 }
 
 func (h *Histogram) initAccHist() {
+	h.initSortedValues()
 	h.accHist = map[int]float64{}
 
+	total := 0.0
+	for _, v := range h.sortedValues {
+		count, _ := h.values[v]
+		total += float64(count)
+		h.accHist[v] = total
+	}
+}
+
+func (h *Histogram) initSortedValues() {
+	if h.sortedValues != nil {
+		return
+	}
 	values := make([]int, 0, len(h.values))
 	for v, _ := range h.values {
 		values = append(values, v)
@@ -90,21 +122,16 @@ func (h *Histogram) initAccHist() {
 
 	sort.Ints(values)
 	h.sortedValues = values
-	total := 0.0
-	for _, v := range values {
-		count, _ := h.values[v]
-		total += float64(count)
-		h.accHist[v] = total
-	}
 }
 
-func (h *Histogram) interpolateValue(v int) float64 {
+func (h *Histogram) interpolateValue(v int, m map[int]float64) float64 {
+	h.initSortedValues()
+
 	x0, x1 := h.neighbours(v)
-	y0 := h.accHist[x0]
-	y1 := h.accHist[x1]
+	y0 := m[x0]
+	y1 := m[x1]
 
 	result := y0 + (y1-y0)*(float64(v-x0)/float64(x1-x0))
-	h.accHist[v] = result
 
 	return result
 }
@@ -126,24 +153,4 @@ func (h *Histogram) neighbours(v int) (prev, next int) {
 			i = i / 2
 		}
 	}
-}
-
-func (h *Histogram) previous(v int) (pos int, val float64) {
-	for pos = v; pos >= *h.minV; pos-- {
-		if val, ok := h.accHist[pos]; ok {
-			return pos, val
-		}
-	}
-
-	return 0, math.NaN()
-}
-
-func (h *Histogram) next(v int) (pos int, val float64) {
-	for pos = v; pos <= *h.maxV; pos++ {
-		if val, ok := h.accHist[pos]; ok {
-			return pos, val
-		}
-	}
-
-	return 0, math.NaN()
 }

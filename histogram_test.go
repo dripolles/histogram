@@ -38,9 +38,9 @@ func (s *HistogramSuite) TestHistogram_GetOutOfBounds(c *C) {
 	h := createSampleHistogram()
 
 	_, err := h.Get(99)
-	c.Assert(err, DeepEquals, ExtrapolationError)
+	c.Assert(err, DeepEquals, ErrExtrapolation)
 	_, err = h.Get(1001)
-	c.Assert(err, DeepEquals, ExtrapolationError)
+	c.Assert(err, DeepEquals, ErrExtrapolation)
 }
 
 func assertHistogramGet(c *C, h *Histogram, v int, expected float64) {

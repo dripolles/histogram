@@ -1,4 +1,5 @@
-// Simple Histogram library, with support for interpolation and percentile calculation.
+// Package histogram provides a simple histogram library, with support for
+// interpolation and percentile calculation.
 //
 // The Histogram stores a count of the number of occurrences for each value. This count
 // can later be used to interpolate expected counts for unknown values, and to
@@ -20,9 +21,10 @@ import (
 )
 
 // This library does not support extrapolation of histogram values outside the range
-// of known values. An ExtrapolationError is used if such extrapolation is attempted.
-var ExtrapolationError error = errors.New("Extrapolation of histogram values not supported")
+// of known values. An ErrExtrapolation is used if such extrapolation is attempted.
+var ErrExtrapolation = errors.New("Extrapolation of histogram values not supported")
 
+// Histogram holds the values and can perform interpolation and percentile calculation.
 type Histogram struct {
 	values       map[int]float64
 	count        int
@@ -32,14 +34,14 @@ type Histogram struct {
 	sortedValues []int
 }
 
-// Create new empty Histogram.
+// NewHistogram creates new empty Histogram.
 func NewHistogram() *Histogram {
 	return &Histogram{
 		values: map[int]float64{},
 	}
 }
 
-// Add value to the Histogram.
+// Add inserts a value into the Histogram.
 func (h *Histogram) Add(v int) {
 	h.accHist = nil
 	h.sortedValues = nil
@@ -49,7 +51,7 @@ func (h *Histogram) Add(v int) {
 	count := h.values[v] + 1.0
 	h.values[v] = count
 
-	h.count += 1
+	h.count++
 }
 
 func (h *Histogram) updateBoundaryValues(v int) {
@@ -62,7 +64,7 @@ func (h *Histogram) updateBoundaryValues(v int) {
 	}
 }
 
-// Numnber of non unique values inserted in the Histogram.
+// Len returns the number of non unique values inserted in the Histogram.
 func (h *Histogram) Len() int {
 	return h.count
 }
@@ -73,12 +75,12 @@ func (h *Histogram) checkInitialized() {
 	}
 }
 
-// Get count for value v. Automatically performs interpolation if needed.
+// Get returns the count for value v. Automatically performs interpolation if needed.
 func (h *Histogram) Get(v int) (float64, error) {
 	h.checkInitialized()
 
 	if v < *h.minV || v > *h.maxV {
-		return 0, ExtrapolationError
+		return 0, ErrExtrapolation
 	}
 
 	count, ok := h.values[v]
@@ -89,7 +91,7 @@ func (h *Histogram) Get(v int) (float64, error) {
 	return count, nil
 }
 
-// Get percentile position for value v. Automatically performs interpolation if needed.
+// GetPercentile returns the percentile position for value v. Automatically performs interpolation if needed.
 func (h *Histogram) GetPercentile(v int) float64 {
 	if v < *h.minV {
 		return 0.0
@@ -128,7 +130,7 @@ func (h *Histogram) initSortedValues() {
 		return
 	}
 	values := make([]int, 0, len(h.values))
-	for v, _ := range h.values {
+	for v := range h.values {
 		values = append(values, v)
 	}
 
@@ -158,9 +160,8 @@ func (h *Histogram) neighbours(v int) (prev, next int) {
 			next = h.sortedValues[i+1]
 			if next >= v {
 				return
-			} else {
-				i += (l - i) / 2
 			}
+			i += (l - i) / 2
 		} else {
 			i = i / 2
 		}

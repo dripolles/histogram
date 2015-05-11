@@ -91,13 +91,14 @@ func (s *HistogramSuite) TestHistogram_PercentileRandom(c *C) {
 }
 
 func (s *HistogramSuite) BenchmarkHistogram_PercentileInterpolate(c *C) {
+	numValues := 100000
+	maxValue := 1000 * 1000 * 1000 * 1000
+	h, _ := makeHistogram(numValues, maxValue)
+
 	for i := 0; i < c.N; i++ {
-		h := NewHistogram()
-		h.Add(1)
-		h.Add(1000000)
-		for v := 100000; v < 1000000; v += 50000 {
-			h.GetPercentile(v)
-		}
+		v := rand.Intn(maxValue)
+		h.GetPercentile(v)
+		return
 	}
 }
 

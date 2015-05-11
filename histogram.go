@@ -151,11 +151,11 @@ func (h *Histogram) interpolateValue(v int, m map[int]float64) float64 {
 }
 
 func (h *Histogram) neighbours(v int) (prev, next int) {
-	max := len(h.sortedValues)
-	i := max / 2
+	max := len(h.sortedValues) - 1
 	min := 0
 
 	for {
+		i := min + ((max - min) / 2)
 		prev = h.sortedValues[i]
 		if prev <= v {
 			min = i
@@ -166,6 +166,5 @@ func (h *Histogram) neighbours(v int) (prev, next int) {
 		} else {
 			max = i
 		}
-		i = min + ((max - min) / 2)
 	}
 }

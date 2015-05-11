@@ -102,6 +102,22 @@ func (s *HistogramSuite) BenchmarkHistogram_PercentileInterpolate(c *C) {
 	}
 }
 
+func (s *HistogramSuite) TestHistogram_Neighbours(c *C) {
+	h := NewHistogram()
+	numValues := 100
+	for i := 0; i < numValues; i++ {
+		h.Add(i * 2)
+	}
+	h.initSortedValues()
+
+	for i := 0; i < numValues-1; i++ {
+		v := i*2 + 1
+		p, n := h.neighbours(i*2 + 1)
+		c.Assert(p, Equals, v-1)
+		c.Assert(n, Equals, v+1)
+	}
+}
+
 func makeHistogram(num, max int) (h *Histogram, values []int) {
 	values = make([]int, 0, num)
 	h = NewHistogram()

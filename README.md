@@ -1,4 +1,6 @@
 # histogram
+[![Build Status](https://travis-ci.org/dripolles/histogram.svg?branch=master)](https://travis-ci.org/dripolles/histogram)
+[![GoDoc](https://godoc.org/github.com/dripolles/histogram?status.svg)](https://godoc.org/github.com/dripolles/histogram)
 
 Simple Histogram library, with support for interpolation and percentile calculation.
 
@@ -15,3 +17,5 @@ Sample usage
  }
  p := GetPercentile(x)
 ```
+
+Full documentation: http://godoc.org/github.com/dripolles/histogram

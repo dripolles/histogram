@@ -67,15 +67,6 @@ func (h *Histogram) Len() int {
 	return h.count
 }
 
-func (h *Histogram) Sum() int {
-	sum := 0
-	for value, _ := range h.values {
-		sum += value
-	}
-
-	return sum
-}
-
 func (h *Histogram) checkInitialized() {
 	if h.minV == nil || h.maxV == nil {
 		panic("Uninitialized Histogram")

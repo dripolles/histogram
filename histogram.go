@@ -91,7 +91,7 @@ func (h *Histogram) Get(v int) (float64, error) {
 	return count, nil
 }
 
-// Get returns the frequency for value v. Automatically performs interpolation if needed.
+// GetInterpolated returns the frequency for value v. Automatically performs interpolation if needed.
 func (h *Histogram) GetInterpolated(v int) (float64, error) {
 	count, err := h.Get(v)
 

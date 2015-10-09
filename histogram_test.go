@@ -27,11 +27,22 @@ func (s *HistogramSuite) TestHistogram_Get(c *C) {
 	h := createSampleHistogram()
 
 	assertHistogramGet(c, h, 100, 2.0)
-	assertHistogramGet(c, h, 300, 3.0)
+	assertHistogramGet(c, h, 300, 0.0)
 	assertHistogramGet(c, h, 500, 4.0)
-	assertHistogramGet(c, h, 700, 3.5)
+	assertHistogramGet(c, h, 700, 0.0)
 	assertHistogramGet(c, h, 900, 3.0)
 	assertHistogramGet(c, h, 1000, 1.0)
+}
+
+func (s *HistogramSuite) TestHistogram_GetInterpolated(c *C) {
+	h := createSampleHistogram()
+
+	assertHistogramGetInterpolated(c, h, 100, 2.0)
+	assertHistogramGetInterpolated(c, h, 300, 3.0)
+	assertHistogramGetInterpolated(c, h, 500, 4.0)
+	assertHistogramGetInterpolated(c, h, 700, 3.5)
+	assertHistogramGetInterpolated(c, h, 900, 3.0)
+	assertHistogramGetInterpolated(c, h, 1000, 1.0)
 }
 
 func (s *HistogramSuite) TestHistogram_GetOutOfBounds(c *C) {
@@ -45,6 +56,12 @@ func (s *HistogramSuite) TestHistogram_GetOutOfBounds(c *C) {
 
 func assertHistogramGet(c *C, h *Histogram, v int, expected float64) {
 	res, err := h.Get(v)
+	c.Assert(err, IsNil)
+	c.Assert(res, Equals, expected)
+}
+
+func assertHistogramGetInterpolated(c *C, h *Histogram, v int, expected float64) {
+	res, err := h.GetInterpolated(v)
 	c.Assert(err, IsNil)
 	c.Assert(res, Equals, expected)
 }

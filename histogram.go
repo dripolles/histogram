@@ -75,7 +75,7 @@ func (h *Histogram) checkInitialized() {
 	}
 }
 
-// Get returns the count for value v. Automatically performs interpolation if needed.
+// Get returns the frequency for value v.
 func (h *Histogram) Get(v int) (float64, error) {
 	h.checkInitialized()
 
@@ -85,10 +85,21 @@ func (h *Histogram) Get(v int) (float64, error) {
 
 	count, ok := h.values[v]
 	if !ok {
-		count = h.interpolateValue(v, h.values)
+		return 0, nil
 	}
 
 	return count, nil
+}
+
+// Get returns the frequency for value v. Automatically performs interpolation if needed.
+func (h *Histogram) GetInterpolated(v int) (float64, error) {
+	count, err := h.Get(v)
+
+	if count == 0 && err == nil {
+		count = h.interpolateValue(v, h.values)
+	}
+
+	return count, err
 }
 
 // GetPercentile returns the percentile position for value v. Automatically performs interpolation if needed.

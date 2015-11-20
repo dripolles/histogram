@@ -136,6 +136,25 @@ func (h *Histogram) initAccHist() {
 	}
 }
 
+// GetAtPercentile gets the value at percentile p
+func (h *Histogram) GetAtPercentile(p float64) int {
+	if p < 0.0 || p > 1.0 {
+		panic("Percentile must be between 0.0 and 1.0")
+	}
+
+	h.initSortedValues()
+	count := float64(h.count)
+	sum := 0.0
+	for _, v := range h.sortedValues {
+		sum += float64(h.values[v])
+		if sum/count >= p {
+			return v
+		}
+	}
+
+	panic("This should never happen")
+}
+
 func (h *Histogram) initSortedValues() {
 	if h.sortedValues != nil {
 		return

@@ -119,6 +119,25 @@ func (s *HistogramSuite) BenchmarkHistogram_PercentileInterpolate(c *C) {
 	}
 }
 
+func (s *HistogramSuite) TestHistogram_GetAtPercentile(c *C) {
+	h := NewHistogram()
+	values := []int{1, 1, 2, 2, 3}
+	for _, v := range values {
+		h.Add(v)
+	}
+
+	c.Assert(h.GetAtPercentile(0.1), Equals, 1)
+	c.Assert(h.GetAtPercentile(0.25), Equals, 1)
+	c.Assert(h.GetAtPercentile(0.4), Equals, 1)
+	c.Assert(h.GetAtPercentile(0.45), Equals, 2)
+	c.Assert(h.GetAtPercentile(0.50), Equals, 2)
+	c.Assert(h.GetAtPercentile(0.80), Equals, 2)
+	c.Assert(h.GetAtPercentile(0.85), Equals, 3)
+	c.Assert(h.GetAtPercentile(0.99), Equals, 3)
+	c.Assert(h.GetAtPercentile(1.0), Equals, 3)
+
+}
+
 func (s *HistogramSuite) TestHistogram_Neighbours(c *C) {
 	h := NewHistogram()
 	numValues := 100

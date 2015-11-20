@@ -43,15 +43,17 @@ func NewHistogram() *Histogram {
 
 // Add inserts a value into the Histogram.
 func (h *Histogram) Add(v int) {
+	h.AddCount(v, 1)
+}
+
+func (h *Histogram) AddCount(v, count int) {
 	h.accHist = nil
 	h.sortedValues = nil
 
 	h.updateBoundaryValues(v)
 
-	count := h.values[v] + 1.0
-	h.values[v] = count
-
-	h.count++
+	h.values[v] = h.values[v] + float64(count)
+	h.count += count
 }
 
 func (h *Histogram) updateBoundaryValues(v int) {
@@ -196,5 +198,12 @@ func (h *Histogram) neighbours(v int) (prev, next int) {
 		} else {
 			max = i
 		}
+	}
+}
+
+// Update adds all the values from h2 to h
+func (h *Histogram) Update(h2 *Histogram) {
+	for v, count := range h2.values {
+		h.AddCount(v, int(count))
 	}
 }

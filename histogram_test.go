@@ -135,7 +135,6 @@ func (s *HistogramSuite) TestHistogram_GetAtPercentile(c *C) {
 	c.Assert(h.GetAtPercentile(0.85), Equals, 3)
 	c.Assert(h.GetAtPercentile(0.99), Equals, 3)
 	c.Assert(h.GetAtPercentile(1.0), Equals, 3)
-
 }
 
 func (s *HistogramSuite) TestHistogram_Neighbours(c *C) {
@@ -151,6 +150,34 @@ func (s *HistogramSuite) TestHistogram_Neighbours(c *C) {
 		p, n := h.neighbours(i*2 + 1)
 		c.Assert(p, Equals, v-1)
 		c.Assert(n, Equals, v+1)
+	}
+}
+
+func (s *HistogramSuite) TestHistogram_Update(c *C) {
+	h1, values1 := makeHistogram(100, 100)
+	h2, values2 := makeHistogram(100, 100)
+
+	h := NewHistogram()
+	h.Update(h1)
+	h.Update(h2)
+
+	allValues := append(values1, values2...)
+
+	for _, value := range allValues {
+		v, err := h.Get(value)
+		c.Assert(err, IsNil)
+
+		v1, err := h1.Get(value)
+		if err != nil {
+			v1 = 0
+		}
+
+		v2, err := h2.Get(value)
+		if err != nil {
+			v2 = 0
+		}
+
+		c.Assert(v, DeepEquals, v1+v2)
 	}
 }
 
